@@ -1,36 +1,66 @@
-# Betting_Model_24_25
- NHL game projection and betting model
-# Betting Model 24-25
+# NHL Game Prediction Model
 
-This repository contains the code and resources for a betting model designed for the 2024-2025 NHL season. The project scrapes data from various sources, processes team statistics, and generates insights to inform betting strategies.
+## Overview
+This project implements a machine learning model to predict NHL (National Hockey League) game outcomes. The system uses Support Vector Machine (SVM) classification to analyze historical game data and make predictions about future game results.
 
-## Table of Contents
-
-- [Introduction](#introduction)
-- [Features](#features)
-- [Usage](#usage)
-- [Data Sources](#data-sources)
-
-## Introduction
-
-The goal of this project is to automate the collection and analysis of NHL data to enhance betting decision-making. The model aggregates daily game data, maps team statistics to corresponding games, and calculates additional metrics such as days of rest and team performance trends.
+## Project Structure
+The repository contains two main components:
+- `run_nhl_model.py`: Script for data collection, preprocessing, and real-time predictions
+- `SVM_model_training.ipynb`: Jupyter notebook containing model training and evaluation
 
 ## Features
+- Scrapes real-time NHL game data from multiple sources
+- Processes and transforms game statistics into meaningful features
+- Implements SVM classification for game outcome prediction
+- Includes comprehensive model evaluation metrics
+- Provides probability estimates for game outcomes
 
-- Processes NHL game data from the previous 3 seasons from [Natural Stat Trick](https://www.naturalstattrick.com/).
-- Trains a SVM model in order to predict outcome probabilites for upcoming NHL games.
-- Scrapes daily game data from [Natural Stat Trick](https://www.naturalstattrick.com/).
-- Maps rolling 10 game averages for team statistics to upcoming games.
-- Calculates key metrics, such as days of rest and game results.
-- Model takes in the home and away team's average statistics from the prrevious 10 games and outputs the predicted pobability of either team winning the game. 
-- Outputs clean CSV files for analysis.
+## Model Performance
+The model achieves the following performance metrics:
+- Accuracy: 59%
+- Mean Cross-Validation Score: 0.59
+- ROC-AUC Score available in training notebook
 
+## Requirements
+- Python 3.x
+- Required packages:
+  - pandas
+  - numpy
+  - scikit-learn
+  - beautifulsoup4
+  - requests
+  - joblib
 
 ## Usage
+1. Train the model:
+   ```python
+   # Run the Jupyter notebook
+   SVM_model_training.ipynb
+ 
+2. Make Predictions
+   ```python
+   # Run the prediction script
+   python run_nhl_model.py
 
-The training set was processed in a jupyter labs notebook to prepare a training set of about 5000 NHL games with the statistics of each team's perfromance in the previous 10 games, as well as the results of said game.
 
-The script nhl_model_run.py is run each day and it scrapes betting odds, and all the NHL games for far this season, processes the games to get the 10 game averages for each team, then puts together the input data for each of the games for the day and saves the outputs to a CSV titled by the date. 
+## Data
+The model uses historical NHL game data including:
+
+Team statistics
+Game scores
+Performance metrics
+Rest days between games
+
+Results are stored in CSV format with predictions and probability estimates for each game.
+These results are then used in comparison to the betting lines in order to idetnify positive expected value bets on NHL games.
+
+
+## Author
+Luke Buckler
+## Acknowledgments
+
+Natural Stat Trick for providing NHL statistics
+Yahoo Sports for odds data
 
 
 ## Data Sources

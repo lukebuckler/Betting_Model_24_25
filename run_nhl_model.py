@@ -7,6 +7,146 @@ import os
 import re
 import datetime
 
+#wesbite with current season's games and stats
+url = 'https://www.naturalstattrick.com/games.php?fromseason=20242025&thruseason=20242025&stype=2&sit=sva&loc=B&team=All&rate=n'
+
+response = requests.get(url)
+
+#use beautiful soup to parse the webpage's content
+soup = BeautifulSoup(response.content, 'html.parser')
+
+# Find the table
+table = soup.find('table')
+
+# Read the table using pandas
+df = pd.read_html(str(table))[0]
+#drop all columns with a %
+cols_to_drop = [col for col in df.columns if '%' in col]
+    
+#drop other unneccesary columns
+df.drop(columns=cols_to_drop, inplace=True)
+df.drop('Unnamed: 2', axis=1, inplace=True)
+df.drop('Attendance', axis=1, inplace=True)
+df.drop('TOI', axis=1, inplace=True)
+df.to_csv('24_25_games.csv', index=False)
+
+# use the mapping dictionary to replace the team names with the abbreviations
+abbreviations_df = pd.read_csv('teams.csv')
+mapping_dict = dict(zip(abbreviations_df['Team'], abbreviations_df['Abbrv']))
+
+def update_and_overwrite_file(file_path, mapping_dict):
+    df = pd.read_csv(file_path)
+    df['Team'] = df['Team'].map(mapping_dict)
+    df.to_csv(file_path, index=False)  
+
+file_paths = ['24_25_Games.csv']
+
+for file_path in file_paths:
+    update_and_overwrite_file(file_path, mapping_dict)
+
+# use the mapping dictionary to replace the team names in the game string with the abbreviations
+abbreviations_df = pd.read_csv('teams.csv')
+mapping_dict = dict(zip(abbreviations_df['Name'], abbreviations_df['Abbrv']))
+
+def replace_team_names(game_string, mapping_dict):
+    pattern = r'(\d{4}-\d{2}-\d{2}) - ([\w\s]+) (\d+), ([\w\s]+) (\d+)'
+    match = re.match(pattern, game_string)
+
+    if match:
+        date, team1, score1, team2, score2 = match.groups()
+        team1_abbr = mapping_dict.get(team1.strip(), team1)
+        team2_abbr = mapping_dict.get(team2.strip(), team2) 
+        return f"{date} - {team1_abbr} {score1}, {team2_abbr} {score2}"
+    else:
+        return game_string
+
+def update_and_overwrite_file(file_path, mapping_dict):
+    df = pd.read_csv(file_path)
+    df['Game'] = df['Game'].apply(lambda x: replace_team_names(x, mapping_dict))
+    df.to_csv(file_path, index=False)
+
+file_paths = ['24_25_games.csv']
+
+for file_path in file_paths:
+    update_and_overwrite_file(file_path, mapping_dict)
+
+import os
+import pandas as pd
+
+# Define the input file and output directory
+input_file = "C:/Users/luken/Desktop/Betting_Model_24_25/24_25_games.csv"
+base_output_directory = "C:/Users/luken/Desktop/Betting_Model_24_25/24_25_team"
+
+# Check if the input file exists
+if not os.path.exists(input_file):
+    print(f"Error: The file '{input_file}' does not exist.")
+else:
+    # Extract the year from the file name
+    year = input_file.split('_games.csv')[0]
+
+    # Create the output directory if it doesn't exist
+    if not os.path.exists(base_output_directory):
+        os.makedirs(base_output_directory)
+
+    # Read the input file
+    df = pd.read_csv(input_file)
+
+    # Extract game details using regex
+    pattern = r'(\d{4}-\d{2}-\d{2}) - ([\w\s]+) (\d+), ([\w\s]+) (\d+)'
+    df[['Date', 'AwayTeam', 'AwayScore', 'HomeTeam', 'HomeScore']] = df['Game'].str.extract(pattern)
+
+    # Add a 'HomeResult' column
+    df['HomeResult'] = 'Draw'
+    df.loc[df['HomeScore'] > df['AwayScore'], 'HomeResult'] = 'Won'
+    df.loc[df['HomeScore'] < df['AwayScore'], 'HomeResult'] = 'Lost'
+
+#sort each team's games into a it's own file for the current season
+    team_subsets = {team: df[df['Team'] == team] for team in df['Team'].unique()}
+
+    for team, subset in team_subsets.items():
+        team_file_name = f"{team}.csv"
+        team_file_path = os.path.join(base_output_directory, team_file_name)
+        subset.to_csv(team_file_path, index=False)
+
+
+#calculate days of rest
+dir_path = "C:/Users/luken/Desktop/Betting_Model_24_25/24_25_team"
+
+
+all_files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)) and f.endswith('.csv')]
+
+for file in all_files:
+    file_path = os.path.join(dir_path, file)
+    df = pd.read_csv(file_path)
+    if 'Date' in df.columns:
+        date_col = 'Date'
+    df[date_col] = pd.to_datetime(df[date_col])
+
+    df['time_diff'] = df[date_col].diff()
+    df['days_of_rest'] = df['time_diff'].dt.days - 1
+    df.drop('time_diff', axis=1, inplace=True)
+    df.to_csv(file_path, index=False)
+
+
+#calculate days of rest
+dir_path = "C:/Users/luken/Desktop/Betting_Model_24_25/24_25_team"
+
+
+all_files = [f for f in os.listdir(dir_path) if os.path.isfile(os.path.join(dir_path, f)) and f.endswith('.csv')]
+
+for file in all_files:
+    file_path = os.path.join(dir_path, file)
+    df = pd.read_csv(file_path)
+    if 'Date' in df.columns:
+        date_col = 'Date'
+    df[date_col] = pd.to_datetime(df[date_col])
+
+    df['time_diff'] = df[date_col].diff()
+    df['days_of_rest'] = df['time_diff'].dt.days - 1
+    df.drop('time_diff', axis=1, inplace=True)
+    df.to_csv(file_path, index=False)
+
+    
 #ODDS SCRAPING
 # Fetch NHL odds data
 url = 'https://sports.yahoo.com/nhl/odds/'
